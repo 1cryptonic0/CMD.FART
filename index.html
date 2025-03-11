@@ -15,6 +15,13 @@
             font-size: 18px;
             white-space: pre-wrap;
         }
+        .command-line {
+            display: flex;
+            align-items: center;
+        }
+        .command-line span {
+            margin-right: 5px;
+        }
         input {
             background: black;
             color: lime;
@@ -22,29 +29,43 @@
             border: none;
             outline: none;
             font-size: 18px;
-            width: 100%;
+            width: auto;
+            min-width: 50px;
+            flex-grow: 1;
         }
     </style>
 </head>
 <body>
     <h1>💾 CMD.FART v1.0 💨</h1>
-    <div id="terminal">
-        <div>C:\> <input type="text" id="commandInput" autofocus></div>
-    </div>
+    <div id="terminal"></div>
 
-    <audio id="fartSound" preload="auto">
+    <audio id="fartSound">
         <source src="fart.mp3" type="audio/mpeg">
     </audio>
 
     <script>
-        function runCommand() {
-            let inputField = document.getElementById("commandInput");
+        function startTerminal() {
+            let terminal = document.getElementById("terminal");
+            let commandLine = document.createElement("div");
+            commandLine.className = "command-line";
+            commandLine.innerHTML = `<span>C:\\></span> <input type="text" id="commandInput" autofocus>`;
+            terminal.appendChild(commandLine);
+
+            let inputField = commandLine.querySelector("input");
+            inputField.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") runCommand(inputField);
+            });
+            inputField.focus();
+        }
+
+        function runCommand(inputField) {
             let input = inputField.value.trim().toUpperCase();
             let output = "";
+            let fartAudio = document.getElementById("fartSound");
+            let terminal = document.getElementById("terminal");
 
             if (input === "CMD.FART" || input === "RUN FART.EXE") {
-                let fartAudio = document.getElementById("fartSound");
-                fartAudio.currentTime = 0; // Restart sound if it's already playing
+                fartAudio.currentTime = 0;
                 fartAudio.play().catch(error => console.log("Audio play error:", error));
 
                 let fartMessages = [
@@ -76,32 +97,22 @@
             } else if (input === "RESET.EXE") {
                 output = "🔄 SYSTEM REBOOTING...";
                 setTimeout(() => {
-                    location.reload(); // Refreshes the page to restart CMD.FART
+                    location.reload();
                 }, 2000);
             } else {
                 output = "❌ COMMAND NOT RECOGNIZED. TRY 'HELP'.";
             }
 
-            let terminal = document.getElementById("terminal");
-            let newLine = document.createElement("div");
-            newLine.innerHTML = `C:\\> ${input}<br>Processing...`;
-            terminal.appendChild(newLine);
+            let commandOutput = document.createElement("div");
+            commandOutput.innerHTML = `C:\\> ${input}<br>${output}`;
+            terminal.appendChild(commandOutput);
 
-            setTimeout(() => {
-                newLine.innerHTML += `<br>${output}<br>C:\\> <input type="text" id="commandInput" autofocus>`;
-                let newInput = newLine.querySelector("input");
-                newInput.addEventListener("keypress", function(event) {
-                    if (event.key === "Enter") runCommand();
-                });
-                newInput.focus();
-            }, 1500); // 1.5 second delay for processing effect
-
-            inputField.remove();
+            inputField.parentElement.remove(); // Remove the old input line
+            startTerminal(); // Start a new input line
+            window.scrollTo(0, document.body.scrollHeight);
         }
 
-        document.getElementById("commandInput").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") runCommand();
-        });
+        startTerminal();
     </script>
 </body>
 </html>
